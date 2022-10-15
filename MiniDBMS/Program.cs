@@ -5,10 +5,17 @@ using MiniDBMS.Context;
 using Raven.Client.Documents;
 using Serilog;
 using Serilog.Core;
+using Serilog.Events;
 using System.Security.Cryptography.X509Certificates;
+using var log = new LoggerConfiguration()
+    .WriteTo.File("logs/minidms.log", rollingInterval: RollingInterval.Day, levelSwitch: new LoggingLevelSwitch(Serilog.Events.LogEventLevel.Verbose))
+    .CreateLogger();
+
+try
+{
 
     var builder = new ConfigurationBuilder()
-                    .AddJsonFile($"appsettings.json", true, true);
+                        .AddJsonFile($"appsettings.json", true, true);
 
     var config = builder.Build();
 
@@ -26,13 +33,21 @@ using System.Security.Cryptography.X509Certificates;
         Certificate = default,
     }.Initialize();
 
-if (store == null)
-    throw new Exception("Could not connect to RavenDB");
+    if (store == null)
+        throw new Exception("Could not connect to RavenDB");
 
-using var log = new LoggerConfiguration()
-    .WriteTo.File("logs/minidms.log",rollingInterval: RollingInterval.Day, levelSwitch : new LoggingLevelSwitch(Serilog.Events.LogEventLevel.Verbose))
-    .CreateLogger();
+    var context = new SqlExecutionContext(store);
+    context.LoadCatalog();
+    log.Write(LogEventLevel.Information, "Loaded catalog");
 
-var controller = new Controller(log, new SqlExecutionContext(store));
-// use something smarter
-while (true) controller.Loop();
+    var controller = new Controller(log, context);
+    
+
+    while (true) controller.Loop();
+
+
+}catch(Exception e)
+{
+    Console.WriteLine($"Exception: {e.Message}");
+    log.Write(LogEventLevel.Fatal, e, "Unhandled exception");
+}

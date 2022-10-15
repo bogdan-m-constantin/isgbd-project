@@ -23,14 +23,21 @@ namespace MiniDBMS
 
         public void Loop()
         {
-            string cmd = ReadCommand();
-            if (ValidateCommand(cmd))
+            try
             {
-                var sqlCmd = cmd.ParseAsSqlCommand();
-                sqlCmd.Execute(_context);
+                string cmd = ReadCommand();
+                if (ValidateCommand(cmd))
+                {
+                    var sqlCmd = cmd.ParseAsSqlCommand();
+                    sqlCmd.Execute(_context);
+                }
+                else
+                    throw new Exception("Invalid command given");
+            }catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+                _logger.Error(e, "Exception: ");
             }
-            else
-                throw new Exception("Invalid command given");
         }
 
         private bool ValidateCommand(string cmd)
@@ -41,7 +48,13 @@ namespace MiniDBMS
         private string ReadCommand()
         {
             Console.WriteLine("Your Command:");
-            return Console.ReadLine() ?? "";
+            string command = "\\";
+            while (command.EndsWith("\\")){
+                var line = Console.ReadLine() ?? "";
+                command += line.Trim();
+            }
+            return command.Replace("\\", " ");
+
         }
     }
 }
