@@ -5,7 +5,8 @@ using Raven.Client.Documents;
 namespace MiniDBMS.Context
 {
     public class SqlExecutionContext{
-        private static string CatalogPath = Path.Combine(Environment.CurrentDirectory, "catalog", "catalog.json");
+        private static string CatalogPath = Path.Combine(Environment.CurrentDirectory, "catalog" );
+        private static string CatalogFileName = Path.Combine(CatalogPath, "catalog.json");
         public string? CurrentDatabase{ get; set; }
         public Catalog? Catalog { get; set; }
         public IDocumentStore Store { get; set; }
@@ -21,13 +22,15 @@ namespace MiniDBMS.Context
                 return;
 
             var json = JsonConvert.SerializeObject(Catalog);
-            File.WriteAllText(CatalogPath, json);
+            Directory.CreateDirectory(CatalogPath);
+            File.WriteAllText(CatalogFileName, json);
         }
         public void LoadCatalog()
         {
-            if (File.Exists(CatalogPath))
+            Directory.CreateDirectory(CatalogPath);
+            if (File.Exists(CatalogFileName))
             {
-                var json = File.ReadAllText(CatalogPath);
+                var json = File.ReadAllText(CatalogFileName);
                 Catalog = JsonConvert.DeserializeObject<Catalog>(json);
             }
             else
