@@ -12,7 +12,11 @@ namespace MiniDBMS.SqlCommands
 
         public override void Execute(SqlExecutionContext context)
         {
-
+            if (context.CurrentDatabase == null)
+                throw new Exception($"Database not selected. Select detabase with USE DATABASE <database-name> command");
+            if (!context.IndexExists(_indexName))
+                throw new Exception($"The index {_indexName} does not exists.");
+            context.DropIndex(_indexName);
         }
 
         public override void Parse()
