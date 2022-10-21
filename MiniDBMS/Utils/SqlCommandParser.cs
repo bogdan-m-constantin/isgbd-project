@@ -21,7 +21,8 @@ namespace MiniDBMS.Utils
                 throw new Exception("Invalid command given. Input was empty");
             var firstToken = tokens.First().ToUpperInvariant();
             var secondToken = tokens.Skip(1).FirstOrDefault()?.ToUpperInvariant();
-
+            // USE DATABASE XYZ
+            // [ USE, DATABASE, XYZ] 
             SqlCommand sqlCmd = tokens.First() switch
             {
                 "USE" => new UseDatabaseCommand(tokens),

@@ -35,19 +35,23 @@ namespace MiniDBMS.SqlCommands
 
         public override void Parse()
         {
-            string tableName = _command[2];
+            _tableName = _command[2];
 
             if (!_command[3].StartsWith("("))
                 throw new Exception("Invalid syntax. Correct syntax is: ");
             string attributesStr = _command.Skip(3).Join(" ").Trim();
-            // list should be now  (col1 type, col2 type, [...] , coln type )
             if (!attributesStr.EndsWith(")"))
                 ThrowInvalidSyntaxError();
+          
             attributesStr = attributesStr.Substring(1, attributesStr.Length - 2);
 
             if (attributesStr.Contains(")") || attributesStr.Contains("("))
                 ThrowInvalidSyntaxError();
+            
             var attrs = attributesStr.Split(",");
+            
+            
+            
             foreach(var attr in attrs)
             {
                 var parts = attr.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);

@@ -43,13 +43,12 @@ namespace MiniDBMS.Context
         public bool DatabaseExists(string database)
         {
             // verifici daca exista baza de date in catalog;
-            throw new NotImplementedException();
+            return Catalog.Databases.Any(e => e.Name == database);
         }
 
         public void AddDatabase(string databaseToCreate)
         {
-            // adaugi baza de date in catalog
-            throw new NotImplementedException();
+            Catalog.Databases.Add(new Database() { Name = databaseToCreate });
         }
 
         public bool TableExists(string tableName)
@@ -81,6 +80,7 @@ namespace MiniDBMS.Context
         public bool IndexExists(string indexName)
         {
             // verifici daca exista deja un index cu numele indexName pe oricare din tabelel din baza de date curenta
+            
             throw new NotImplementedException();
         }
 
