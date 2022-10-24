@@ -37,63 +37,66 @@ namespace MiniDBMS.Context
                 Catalog = new Catalog();
         }
 
-        // sterge comentariile dupa ce implementezi
-        // la sfarsit la fiecare comanda trebuie apelat UpdateCatalog();
-
         public bool DatabaseExists(string database)
         {
-            // verifici daca exista baza de date in catalog;
             return Catalog.Databases.Any(e => e.Name == database);
         }
 
         public void AddDatabase(string databaseToCreate)
         {
             Catalog.Databases.Add(new Database() { Name = databaseToCreate });
+            UpdateCatalog();
         }
 
         public bool TableExists(string tableName)
         {
-            // verifici daca exista tabelul tableName in baza de date CurrentDatabase
-            throw new NotImplementedException();
+            var db = Catalog.Databases.FirstOrDefault(e => e.Name == CurrentDatabase);
+            return db.Tables.Any(t => t.Name == tableName);
         }
 
         public void AddTable(Table t)
         {
-            // adaugi tabelul t in baza de date CurrentDatabase
-            throw new NotImplementedException();
+            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
+            db.Tables.Add(t);
+            UpdateCatalog();
         }
 
         public void DropTable(string tableName)
         {
-            // stergi tabelul tableName din baza de date CurrentDatabase
-            throw new NotImplementedException();
+            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
+            db.Tables.RemoveAt(t => t.Name == tableName);
+            UpdateCatalog();
         }
 
         public void DropDatabase(string databaseToDrop)
         {
             if (CurrentDatabase == databaseToDrop)
                 CurrentDatabase = null;
-            // stergi baza de date databaseToDrop din catalog
-            throw new NotImplementedException();
+            Catalog.Databases.RemoveAt(db => db.Name == databaseToDrop);
+            UpdateCatalog();
         }
 
         public bool IndexExists(string indexName)
         {
-            // verifici daca exista deja un index cu numele indexName pe oricare din tabelel din baza de date curenta
+            var db = Catalog.Database.FirstOrDefault(e => e.name = CurrentDatabase);
+            return db.Tables.Any(t => t.Indexes.Any(e => e.Name == indexName));
             
-            throw new NotImplementedException();
         }
 
         public void CreateIndex(string tableName, Domain.Index index)
         {
-            // adaugi index-ul la tabelul tableName din baza de date curenta;
-            throw new NotImplementedException();
+            var db = Catalog.Database.FirstOrDefault(e => e.name = CurrentDatabase);
+            var table = db.Tables.FirstOrDefault(t => t.Name == tableName);
+            table.Indexes.Add(index);
+            UpdateCatalog();
         }
 
         internal void DropIndex(string indexName)
         {
-            // stergi index-ul baza de date curenta;
-            throw new NotImplementedException();
+            var db = Catalog.Database.First(e => e.name == CurrentDatabase);
+            var table = db.Tables.First(t => t.Indexes.Any(e => e.Name == indexName));
+            table.Indexes.RemoveAt(table.Indexes.FindIndex(e => e.Name == indexName));
+            UpdateCatalog();
         }
     }
 }
