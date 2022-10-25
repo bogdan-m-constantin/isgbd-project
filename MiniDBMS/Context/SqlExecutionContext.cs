@@ -39,23 +39,27 @@ namespace MiniDBMS.Context
 
         public bool DatabaseExists(string database)
         {
+            if (Catalog == null) throw new Exception("InvalidCatalog");
             return Catalog.Databases.Any(e => e.Name == database);
         }
 
         public void AddDatabase(string databaseToCreate)
         {
+            if (Catalog == null) throw new Exception("InvalidCatalog");
             Catalog.Databases.Add(new Database() { Name = databaseToCreate });
             UpdateCatalog();
         }
 
         public bool TableExists(string tableName)
         {
-            var db = Catalog.Databases.FirstOrDefault(e => e.Name == CurrentDatabase);
+            if (Catalog == null) throw new Exception("InvalidCatalog");
+            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
             return db.Tables.Any(t => t.Name == tableName);
         }
 
         public void AddTable(Table t)
         {
+            if (Catalog == null) throw new Exception("InvalidCatalog");
             var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
             db.Tables.Add(t);
             UpdateCatalog();
@@ -63,37 +67,42 @@ namespace MiniDBMS.Context
 
         public void DropTable(string tableName)
         {
+            if (Catalog == null) throw new Exception("InvalidCatalog");
             var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
-            db.Tables.RemoveAt(t => t.Name == tableName);
+            db.Tables.RemoveAt(db.Tables.FindIndex(t => t.Name == tableName));
             UpdateCatalog();
         }
 
         public void DropDatabase(string databaseToDrop)
         {
+            if (Catalog == null) throw new Exception("InvalidCatalog");
             if (CurrentDatabase == databaseToDrop)
                 CurrentDatabase = null;
-            Catalog.Databases.RemoveAt(db => db.Name == databaseToDrop);
+            Catalog.Databases.RemoveAt(Catalog.Databases.FindIndex(db => db.Name == databaseToDrop));
             UpdateCatalog();
         }
 
         public bool IndexExists(string indexName)
         {
-            var db = Catalog.Database.FirstOrDefault(e => e.name = CurrentDatabase);
+            if (Catalog == null) throw new Exception("InvalidCatalog");
+            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
             return db.Tables.Any(t => t.Indexes.Any(e => e.Name == indexName));
             
         }
 
         public void CreateIndex(string tableName, Domain.Index index)
         {
-            var db = Catalog.Database.FirstOrDefault(e => e.name = CurrentDatabase);
-            var table = db.Tables.FirstOrDefault(t => t.Name == tableName);
+            if (Catalog == null) throw new Exception("InvalidCatalog");
+            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
+            var table = db.Tables.First(t => t.Name == tableName);
             table.Indexes.Add(index);
             UpdateCatalog();
         }
 
         internal void DropIndex(string indexName)
         {
-            var db = Catalog.Database.First(e => e.name == CurrentDatabase);
+            if (Catalog == null) throw new Exception("InvalidCatalog");
+            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
             var table = db.Tables.First(t => t.Indexes.Any(e => e.Name == indexName));
             table.Indexes.RemoveAt(table.Indexes.FindIndex(e => e.Name == indexName));
             UpdateCatalog();

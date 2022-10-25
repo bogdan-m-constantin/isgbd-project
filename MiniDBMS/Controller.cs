@@ -23,6 +23,8 @@ namespace MiniDBMS
 
         public void Loop()
         {
+            Console.WriteLine("Current Database: " +(_context.CurrentDatabase ?? "-"));
+            Console.WriteLine(_context.Catalog);
             try
             {
                 string cmd = ReadCommand();
@@ -30,6 +32,7 @@ namespace MiniDBMS
                 {
                     var sqlCmd = cmd.ParseAsSqlCommand();
                     sqlCmd.Execute(_context);
+                    Console.WriteLine("Command executed successfully");
                 }
                 else
                     throw new Exception("Invalid command given");
@@ -38,6 +41,9 @@ namespace MiniDBMS
                 Console.WriteLine(e.Message);
                 _logger.Error(e, "Exception: ");
             }
+            Console.WriteLine("Press any key to continue");
+            Console.ReadKey();
+            Console.Clear();
         }
 
         private bool ValidateCommand(string cmd)

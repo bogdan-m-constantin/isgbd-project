@@ -15,7 +15,7 @@ namespace MiniDBMS.SqlCommands
         public CreateTableCommand(params string[] cmd) : base(cmd)
         {
         }
-        public override string CorrectSyntax => "CREATE TABLE <tableName> (col1 type, col2 type, [...] , coln type )";
+        public override string CorrectSyntax => "CREATE TABLE <tableName> (col1 type [PRIMARY KEY], col2 type [PRIMARY KEY], [...] , coln type [PRIMARY KEY])";
         // CREATE TABLE <tableName> (col1 type, col2 type, col3 type)
         public override void Execute(SqlExecutionContext context)
         {
@@ -55,14 +55,24 @@ namespace MiniDBMS.SqlCommands
             foreach(var attr in attrs)
             {
                 var parts = attr.Split(" ", StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if(parts.Length != 2)
+                if(parts.Length != 2 && parts.Length != 4)
                     ThrowInvalidSyntaxError();
                 string attrName = parts[0];
-                
                 DataType attrType = Enum.Parse<DataType>(parts[1], true);
                 if (attrType == DataType.Invalid)
                     ThrowInvalidSyntaxError();
-                _columns.Add(new() {Type = attrType,Name = attrName});
+                bool primaryKey = false;
+                if(parts.Length == 4)
+                {
+                    if (parts[2] == "PRIMARY" && parts[3] == "KEY")
+                    {
+                        primaryKey = true;
+                    }
+                    else
+                        ThrowInvalidSyntaxError();
+                }
+                _columns.Add(new() {Type = attrType,Name = attrName, PrimaryKey = primaryKey});
+
             }
         }
     }

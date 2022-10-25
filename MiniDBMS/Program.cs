@@ -14,12 +14,10 @@ using var log = new LoggerConfiguration()
 try
 {
 
-    var builder = new ConfigurationBuilder()
-                        .AddJsonFile($"appsettings.json", true, true);
+  
+    
 
-    var config = builder.Build();
-
-    string ravenDbUrl = config.GetSection("ravendb").Value;
+    string ravenDbUrl = "http://localhost:8080";
 
     var store = new DocumentStore()
     {

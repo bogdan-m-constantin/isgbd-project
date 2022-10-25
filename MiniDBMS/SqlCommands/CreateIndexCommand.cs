@@ -35,7 +35,7 @@ namespace MiniDBMS.SqlCommands
             _indexName = _command[2];
             var primaryParts = _command[4].Split(".");
             
-            if (_command[3] != "ON" || _command[4].Length != 2)
+            if (_command[3] != "ON" || primaryParts.Length != 2)
                 ThrowInvalidSyntaxError();
 
             _tableName = primaryParts[0];
