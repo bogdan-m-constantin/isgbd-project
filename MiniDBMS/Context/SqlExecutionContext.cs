@@ -1,11 +1,12 @@
 ﻿using MiniDBMS.Domain;
 using Newtonsoft.Json;
 using Raven.Client.Documents;
+using Attribute = MiniDBMS.Domain.Attribute;
 
 namespace MiniDBMS.Context
 {
     public class SqlExecutionContext{
-        private static string CatalogPath = Path.Combine(Environment.CurrentDirectory, "catalog" );
+        private static string CatalogPath = Path.Combine(Directory.GetCurrentDirectory(), "catalog" );
         private static string CatalogFileName = Path.Combine(CatalogPath, "catalog.json");
         public string? CurrentDatabase{ get; set; }
         public Catalog? Catalog { get; set; }
@@ -99,13 +100,27 @@ namespace MiniDBMS.Context
             UpdateCatalog();
         }
 
-        internal void DropIndex(string indexName)
+        public void DropIndex(string indexName)
         {
             if (Catalog == null) throw new Exception("InvalidCatalog");
             var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
             var table = db.Tables.First(t => t.Indexes.Any(e => e.Name == indexName));
             table.Indexes.RemoveAt(table.Indexes.FindIndex(e => e.Name == indexName));
             UpdateCatalog();
+        }
+
+        public bool ColumnExists(string referencedTable, string referencedColumn)
+        {
+            return Catalog!.Databases.First(e => e.Name == CurrentDatabase)
+                .Tables.First(t => t.Name == referencedTable)
+                .Attributes.Any(a => a.Name == referencedColumn);
+        }
+
+        internal Attribute GetColumn(string referencedTable, string referencedColumn)
+        {
+            return Catalog!.Databases.First(e => e.Name == CurrentDatabase)
+                .Tables.First(t => t.Name == referencedTable)
+                .Attributes.First(a => a.Name == referencedColumn);
         }
     }
 }

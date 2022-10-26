@@ -8,15 +8,11 @@ using Serilog.Core;
 using Serilog.Events;
 using System.Security.Cryptography.X509Certificates;
 using var log = new LoggerConfiguration()
-    .WriteTo.File("logs/minidms.log", rollingInterval: RollingInterval.Day, levelSwitch: new LoggingLevelSwitch(Serilog.Events.LogEventLevel.Verbose))
+    .WriteTo.File(Path.Combine(Directory.GetCurrentDirectory(),"logs/minidms.log"), rollingInterval: RollingInterval.Day, levelSwitch: new LoggingLevelSwitch(Serilog.Events.LogEventLevel.Verbose))
     .CreateLogger();
 
 try
 {
-
-  
-    
-
     string ravenDbUrl = "http://localhost:8080";
 
     var store = new DocumentStore()
