@@ -31,7 +31,7 @@ namespace MiniDBMS
                 if (ValidateCommand(cmd))
                 {
                     var sqlCmd = cmd.ParseAsSqlCommand();
-                    sqlCmd.Execute(_context);
+                       sqlCmd.Execute(_context);
                     Console.WriteLine("Command executed successfully");
                 }
                 else

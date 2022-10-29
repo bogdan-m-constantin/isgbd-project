@@ -40,6 +40,7 @@ namespace MiniDBMS.Utils
                     "INDEX" => new DropIndexCommand(tokens),
                     _ => throw new Exception($"Invalid syntax near {secondToken}")
                 }, // can be create db,
+                "INSERT"=> new InsertSqlCommand(tokens),
                 _ => throw new Exception($"Invalid syntax near {firstToken}")
             };
 

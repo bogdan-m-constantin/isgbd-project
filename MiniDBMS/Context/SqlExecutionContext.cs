@@ -122,5 +122,11 @@ namespace MiniDBMS.Context
                 .Tables.First(t => t.Name == referencedTable)
                 .Attributes.First(a => a.Name == referencedColumn);
         }
+
+        internal Table GetTable(string table)
+        {
+            return Catalog!.Databases.First(e => e.Name == CurrentDatabase)
+                .Tables.First(t => t.Name == table);
+        }
     }
 }

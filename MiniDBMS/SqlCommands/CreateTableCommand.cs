@@ -83,7 +83,7 @@ namespace MiniDBMS.SqlCommands
                     {
                         primaryKey = true;
                     }
-                    if (parts[2] == "REFERENCES" || (parts[2] == "PRIMARY" && parts[4] == "REFERENCES"))
+                    if (parts[2] == "REFERENCES" || (parts[2] == "PRIMARY" && parts.Length >= 5 && parts[4] == "REFERENCES"))
                     {
                         var tableParts = parts[parts[2] == "PRIMARY" ? 5 : 3].Split(".");
 

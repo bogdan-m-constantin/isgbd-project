@@ -23,7 +23,7 @@ try
                     MaxNumberOfRequestsPerSession = 32,
                     UseOptimisticConcurrency = true,
                 },
-        Database = "mini-dbms",
+        Database = "MiniDBMS",
         Certificate = default,
     }.Initialize();
 
