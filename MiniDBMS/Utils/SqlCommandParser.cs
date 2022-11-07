@@ -41,7 +41,9 @@ namespace MiniDBMS.Utils
                     _ => throw new Exception($"Invalid syntax near {secondToken}")
                 }, // can be create db,
                 "INSERT"=> new InsertSqlCommand(tokens),
-                _ => throw new Exception($"Invalid syntax near {firstToken}")
+                
+                "DELETE" => new DeleteCommand(tokens),
+                _ => throw new Exception($"Invalid syntax near {firstToken}"),
             };
 
 

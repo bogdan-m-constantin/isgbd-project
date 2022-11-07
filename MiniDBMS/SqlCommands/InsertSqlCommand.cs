@@ -48,7 +48,7 @@ namespace MiniDBMS.SqlCommands
 
             TableRow row = new()
             {
-                Id = $"{table.Name}:{id}",
+                Id = $"{context.CurrentDatabase}:{table.Name}:{id}",
                 Values = data
             };
             if (session.Query<TableRow>().Any(r => r.Id == row.Id))
