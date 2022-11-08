@@ -4,6 +4,7 @@ using MiniDBMS.Utils;
 using Raven.Client.Documents.Operations;
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -31,10 +32,10 @@ namespace MiniDBMS.SqlCommands
             if (_col != null)
             {
                 if (!context.ColumnExists(table.Name, _col))
-                    throw new Exception($"..");
+                    throw new Exception($"Column {_col} does not exists");
                 var col = table.Attributes.First(c => c.Name == _col);
                 if (_val?.ValidateAs(col.Type) != true)
-                    throw new Exception();
+                    throw new Exception($"Value {_val} should be of type {Enum.GetName(col.Type)}");
                 _val = _val.CleanDataAs(col.Type);
             }
             if (_col == null)
@@ -74,9 +75,6 @@ namespace MiniDBMS.SqlCommands
                 _val = _command[6];
 
             }
-
-
-            throw new NotImplementedException();
         }
     }
 }
