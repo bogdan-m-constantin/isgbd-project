@@ -16,8 +16,8 @@ namespace MiniDBMS.SqlCommands
     {
         private string _table = "";
         private string[] _allowed = new string[] { "<", ">", "<=", ">=", "<>", "=" };
-        private string? _col = "";
-        private string? _val = "";
+        private string? _col = null;
+        private string? _val = null;
         public DeleteCommand(string[] cmd) : base(cmd)
         {
         }

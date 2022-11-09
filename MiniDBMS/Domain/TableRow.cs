@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace MiniDBMS.Domain
 {
-    internal class TableRow
+    public class TableRow
     {
         public string Id { get; set; } = string.Empty;
         public string Values { get; set; } = string.Empty;

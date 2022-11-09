@@ -54,7 +54,7 @@ namespace MiniDBMS.SqlCommands
             if (session.Query<TableRow>().Any(r => r.Id == row.Id))
                 throw new Exception("Primary Key constraint violation");
                 
-            session.Store(row,id);
+            session.Store(row);
             session.SaveChanges();
 
 
