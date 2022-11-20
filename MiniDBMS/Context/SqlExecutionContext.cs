@@ -1,6 +1,9 @@
 ﻿using MiniDBMS.Domain;
+using MiniDBMS.Utils;
 using Newtonsoft.Json;
+using Nito.Disposables;
 using Raven.Client.Documents;
+using System;
 using Attribute = MiniDBMS.Domain.Attribute;
 
 namespace MiniDBMS.Context
@@ -70,7 +73,12 @@ namespace MiniDBMS.Context
         {
             if (Catalog == null) throw new Exception("InvalidCatalog");
             var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
+            var table = GetTable(tableName);
+            using var session = Store.OpenSession();
+            table.ClearIndexes(this,session);
+            session.SaveChanges();
             db.Tables.RemoveAt(db.Tables.FindIndex(t => t.Name == tableName));
+            
             UpdateCatalog();
         }
 
@@ -79,6 +87,11 @@ namespace MiniDBMS.Context
             if (Catalog == null) throw new Exception("InvalidCatalog");
             if (CurrentDatabase == databaseToDrop)
                 CurrentDatabase = null;
+            using var session = Store.OpenSession();
+
+            Catalog.Databases.First(e => e.Name == databaseToDrop).Tables.ForEach(t =>
+                t.ClearIndexes(this, session));
+            session.SaveChanges();
             Catalog.Databases.RemoveAt(Catalog.Databases.FindIndex(db => db.Name == databaseToDrop));
             UpdateCatalog();
         }
@@ -97,6 +110,7 @@ namespace MiniDBMS.Context
             var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
             var table = db.Tables.First(t => t.Name == tableName);
             table.Indexes.Add(index);
+            index.CreateIndexFile(table,this);
             UpdateCatalog();
         }
 
@@ -105,7 +119,13 @@ namespace MiniDBMS.Context
             if (Catalog == null) throw new Exception("InvalidCatalog");
             var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
             var table = db.Tables.First(t => t.Indexes.Any(e => e.Name == indexName));
+            var index = table.Indexes.First(e => e.Name == indexName);
+            using var session = Store.OpenSession();
+
+            index.ClearIndex(this, session);
+            session.SaveChanges();
             table.Indexes.RemoveAt(table.Indexes.FindIndex(e => e.Name == indexName));
+            
             UpdateCatalog();
         }
 

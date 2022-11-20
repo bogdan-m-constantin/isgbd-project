@@ -1,10 +1,13 @@
 ﻿using MiniDBMS.Domain;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Index = MiniDBMS.Domain.Index;
 
 namespace MiniDBMS.Utils
 {
@@ -65,7 +68,7 @@ namespace MiniDBMS.Utils
             return bool.Parse(data).ToString();
         }
 
-        public static (string id, string values) PackData(this Table t, Dictionary<string,string> values)
+        public static (string id, string values) PackData(this Table t, Dictionary<string, string> values)
         {
             List<string> valueParts = new();
             List<string> idParts = new();
@@ -79,6 +82,44 @@ namespace MiniDBMS.Utils
             }
             return (idParts.Join(";"), valueParts.Join(";"));
 
+        }
+        public static (string id, string values) PackData(this Table t, Index index, Dictionary<string, string> values)
+        {
+            List<string> valueParts = new();
+            List<string> idParts = new();
+            foreach (var c in t.Attributes)
+            {
+                var value = values.ContainsKey(c.Name) ? values[c.Name] : "NULL";
+                if (c.PrimaryKey)
+                    valueParts.Add(value);
+                if(index.Columns.Contains(c.Name))
+                    idParts.Add(value);
+            }
+            return (idParts.Join(";"), valueParts.Join(";"));
+
+        }
+        public static Dictionary<string,object> UnpackData(this TableRow row, Table table)
+        {
+            var idParts = row.Id.Split(";");
+            int idIndex = 0;
+            var valueParts = row.Values.Split(";");
+            int valuesIndex = 0;
+            Dictionary<string, object> values = new();
+            foreach (var c in table.Attributes)
+            {
+                
+                if (c.PrimaryKey)
+                {
+                    values[c.Name] = idParts[idIndex];
+                    idIndex++;
+                }
+                else
+                {
+                    values[c.Name] = valueParts[valuesIndex];
+                    valuesIndex++;
+                }
+            }
+            return values;
         }
 
     }

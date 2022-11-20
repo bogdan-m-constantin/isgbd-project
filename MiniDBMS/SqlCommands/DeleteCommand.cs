@@ -1,6 +1,7 @@
 ﻿using MiniDBMS.Context;
 using MiniDBMS.Domain;
 using MiniDBMS.Utils;
+using Newtonsoft.Json.Linq;
 using Raven.Client.Documents.Operations;
 using System;
 using System.Collections.Generic;
@@ -8,6 +9,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Collections.Specialized.BitVector32;
 
 namespace MiniDBMS.SqlCommands
 {
@@ -38,6 +40,8 @@ namespace MiniDBMS.SqlCommands
                     throw new Exception($"Value {_val} should be of type {Enum.GetName(col.Type)}");
                 _val = _val.CleanDataAs(col.Type);
             }
+
+            // check foreign keys referencing this
             if (_col == null)
             {
                 using var session = context.Store.OpenSession();
@@ -48,14 +52,17 @@ namespace MiniDBMS.SqlCommands
                 {
                     session.Delete(id);
                 }
+                table.ClearIndexes( context, session);
                 session.SaveChanges();
             }
             else
             {
                 using var session = context.Store.OpenSession();
                 session.Delete($"{context.CurrentDatabase}:{table.Name}:{_val}");
+                _val?.RemoveFromIndexes(table, context, session);
                 session.SaveChanges();
             }
+
         }
 
         public override void Parse()

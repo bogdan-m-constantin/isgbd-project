@@ -11,6 +11,7 @@ namespace MiniDBMS.Domain
         {
             return $"          {Name} - Columns: {Columns.Join(",")}";
         }
+
     }
     
 }

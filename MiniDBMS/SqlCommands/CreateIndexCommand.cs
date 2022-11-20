@@ -15,7 +15,7 @@ namespace MiniDBMS.SqlCommands
         {
         }
 
-        public override string CorrectSyntax => "CREATE INDEX index_name ON tableName.columnName [INCLUDE (col1, col2 , [..] col n)]";
+        public override string CorrectSyntax => "CREATE INDEX index_name ON tableName.columnName";
 
         public override void Execute(SqlExecutionContext context)
         {
@@ -41,21 +41,7 @@ namespace MiniDBMS.SqlCommands
             _tableName = primaryParts[0];
             _columns.Add(primaryParts[1]);
 
-            if (_command.Length > 5)
-            {
-                if (_command[5] != "INCLUDE" || _command[6].StartsWith(")") || !_command.Last().EndsWith(")"))
-                    ThrowInvalidSyntaxError();
-                string attrsStr = _command.Skip(6).Join(" ");
-                attrsStr = attrsStr.Substring(1,attrsStr.Length - 2);
-                if(attrsStr.Contains(")") || attrsStr.Contains("("))
-                    ThrowInvalidSyntaxError();
-                var columns = attrsStr.Split(",",StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                if(columns.Length == 0)
-                    ThrowInvalidSyntaxError();
-                foreach(var column in columns)
-                    _columns.Add(column);
-                
-            }
+           
 
         }
     }
