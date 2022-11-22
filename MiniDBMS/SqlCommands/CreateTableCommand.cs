@@ -4,6 +4,7 @@ using MiniDBMS.Utils;
 
 using System.Security.Cryptography.X509Certificates;
 using Attribute = MiniDBMS.Domain.Attribute;
+using Index = MiniDBMS.Domain.Index;
 
 namespace MiniDBMS.SqlCommands
 {
@@ -34,6 +35,7 @@ namespace MiniDBMS.SqlCommands
 
                 if (context.GetColumn(c.ForeignKey!.ReferencedTable, c.ForeignKey!.ReferencedColumn).Type != c.Type)
                     throw new Exception($"Referenced column {c.Name} has diferent type than {c.ForeignKey.ReferencedTable}.{c.ForeignKey.ReferencedColumn}");
+                
             }
 
             Table t = new()
@@ -42,7 +44,15 @@ namespace MiniDBMS.SqlCommands
                 Attributes = _columns,
 
             };
+
             context.AddTable(t);
+            foreach(var fk in t.ForeignKeyAttributes)
+            {
+
+                context.CreateIndex(_tableName, new Index() { Column = fk.Name, Name = fk.ForeignKey.Name });
+            }
+
+            
         }
 
         public override void Parse()
@@ -105,7 +115,9 @@ namespace MiniDBMS.SqlCommands
                     ForeignKey = foreignKey ? new()
                     {
                         ReferencedTable = referencedTable!,
-                        ReferencedColumn = referencedColumn!
+                        ReferencedColumn = referencedColumn!,
+                        SourceColumn = attrName,
+                        SourceTable = _tableName
                     } : null
                 });
 

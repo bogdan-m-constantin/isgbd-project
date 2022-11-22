@@ -10,12 +10,14 @@ namespace MiniDBMS.SqlCommands
     {
         private string _indexName = string.Empty;
         private string _tableName = string.Empty;
-        private List<string> _columns = new();
+        private string _column = string.Empty;
+        private bool _unique;
+
         public CreateIndexCommand(params string[] cmd) : base(cmd)
         {
         }
 
-        public override string CorrectSyntax => "CREATE INDEX index_name ON tableName.columnName";
+        public override string CorrectSyntax => "CREATE INDEX index_name ON tableName.columnName [UNIQUE]";
 
         public override void Execute(SqlExecutionContext context)
         {
@@ -23,11 +25,15 @@ namespace MiniDBMS.SqlCommands
                 throw new Exception($"Database not selected. Select detabase with USE DATABASE <database-name> command");
             if (context.IndexExists(_indexName))
                 throw new Exception($"There is allready an index with name {_indexName}");
-            context.CreateIndex(_tableName, new Index
+            var index = new Index
             {
-                Columns = _columns,
-                Name = _indexName
-            });
+                Column = _column,
+                Name = _indexName,
+                Unique = _unique
+            };
+            context.CreateIndex(_tableName, index);
+            index.CreateIndexFile(context.GetTable(_tableName), context);
+            
         }
         
         public override void Parse()
@@ -39,8 +45,12 @@ namespace MiniDBMS.SqlCommands
                 ThrowInvalidSyntaxError();
 
             _tableName = primaryParts[0];
-            _columns.Add(primaryParts[1]);
-
+            _column = primaryParts[1];
+            if (_command.Length == 6)
+            {
+                if (_command[5].ToLowerInvariant() == "unique")
+                    _unique = true;
+            }
            
 
         }

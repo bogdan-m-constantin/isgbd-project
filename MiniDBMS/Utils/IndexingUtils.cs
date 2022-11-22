@@ -32,7 +32,7 @@ namespace MiniDBMS.Utils
             var remoteItem = session.Load<IndexItem>($"{context.CurrentDatabase}:{index.Name}:{data.id}");
             if (remoteItem == null)
             {
-                remoteItem = new IndexItem(data.id, "");
+                remoteItem = new IndexItem($"{context.CurrentDatabase}:{index.Name}:{data.id}", "");
             }
             remoteItem.Values += data.values + "|";
             session.Store(remoteItem);
@@ -48,7 +48,7 @@ namespace MiniDBMS.Utils
 
         private static void RemoveFromIndex(this string id, SqlExecutionContext context, IDocumentSession session, Index index)
         {
-            var remoteItems = session.Query<IndexItem>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{index.Name}") && e.Values.Split("|", StringSplitOptions.RemoveEmptyEntries).Any(e => e == id));
+            var remoteItems = session.Query<IndexItem>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{index.Name}")).ToList().Where(e=> e.Values.Split("|", StringSplitOptions.RemoveEmptyEntries).Any(e => e == id));
             foreach (var remoteItem in remoteItems)
             {
                 remoteItem.Values = remoteItem.Values.Split("|").Where(e => e != id).Join("|");
@@ -76,7 +76,7 @@ namespace MiniDBMS.Utils
         public static void CreateIndexFile(this Index index, Table table, SqlExecutionContext context)
         {
             using var session = context.Store.OpenSession();
-            var remoteItems = session.Query<TableRow>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{table.Name}"))
+            var remoteItems = session.Query<TableRow>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{table.Name}")).ToList()
                 .Select(e => e.UnpackData(table));
             foreach (var remoteItem in remoteItems)
             {
@@ -84,6 +84,12 @@ namespace MiniDBMS.Utils
 
             }
             session.SaveChanges();
+        }
+        public static bool CheckIndex(this Index index, SqlExecutionContext context, string value, IDocumentSession session)
+        {
+
+             return session.Load<IndexItem>($"{context.CurrentDatabase}:{index.Name}:{value}")?.Values?.Split("|",StringSplitOptions.RemoveEmptyEntries)?.Any() ?? false;
+            
         }
     }
 }

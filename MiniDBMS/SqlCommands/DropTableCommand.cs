@@ -1,4 +1,5 @@
 ﻿using MiniDBMS.Context;
+using MiniDBMS.Utils;
 
 namespace MiniDBMS.SqlCommands
 {
@@ -18,6 +19,10 @@ namespace MiniDBMS.SqlCommands
                 throw new Exception($"Database not selected. Select detabase with USE DATABASE <database-name> command");
             if (!context.TableExists(_tableName))
                 throw new Exception($"The table {_tableName} does not exists.");
+            var childTables = context.Database!.Tables.Where(e => e.Attributes.Any(e => e.ForeignKey?.ReferencedTable == _tableName)).Select(e => e.Name);
+            if (childTables.Any()){
+                throw new Exception($"Tables {childTables.Join(",")} depend on table {_tableName}.");
+            }
             context.DropTable(_tableName);
         }
 

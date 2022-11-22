@@ -6,6 +6,7 @@ using Raven.Client.Documents.Conventions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using static System.Formats.Asn1.AsnWriter;
@@ -53,11 +54,27 @@ namespace MiniDBMS.SqlCommands
             };
             if (session.Query<TableRow>().Any(r => r.Id == row.Id))
                 throw new Exception("Primary Key constraint violation");
-               
-            // validate foreign keys and unique keys
+
+            // validate fks
+            foreach(var fk in table.ForeignKeyAttributes)
+            {
+                if (_values.TryGetValue(fk.Name, out string? val) && val != "NULL")
+                    if (session.Load<TableRow>($"{context.CurrentDatabase}:{fk.ForeignKey.ReferencedTable}:{val}") == null)
+                        throw new Exception($"Foreign key violation Val: {val} FkTable: {fk.ForeignKey.ReferencedTable}");
+            }
+
+            //validate uks
+            foreach(var uk in table.UniqueIndexes)
+            {
+                if (_values.TryGetValue(uk.Column, out string? val) && val != "NULL")
+                    if (uk.CheckIndex(context, val, session))
+                        throw new Exception($"Unique key constraint violation. Value: {val}. Key: {uk.Name} ");
+            }
+
+
             session.Store(row);
             _values.AddToIndexes(table, context, session);
-
+            
             session.SaveChanges();
 
 

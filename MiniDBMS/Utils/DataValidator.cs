@@ -92,7 +92,7 @@ namespace MiniDBMS.Utils
                 var value = values.ContainsKey(c.Name) ? values[c.Name] : "NULL";
                 if (c.PrimaryKey)
                     valueParts.Add(value);
-                if(index.Columns.Contains(c.Name))
+                if(index.Column.Contains(c.Name))
                     idParts.Add(value);
             }
             return (idParts.Join(";"), valueParts.Join(";"));

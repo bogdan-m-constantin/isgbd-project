@@ -5,6 +5,7 @@ using Nito.Disposables;
 using Raven.Client.Documents;
 using System;
 using Attribute = MiniDBMS.Domain.Attribute;
+using Index = MiniDBMS.Domain.Index;
 
 namespace MiniDBMS.Context
 {
@@ -14,6 +15,7 @@ namespace MiniDBMS.Context
         public string? CurrentDatabase{ get; set; }
         public Catalog? Catalog { get; set; }
         public IDocumentStore Store { get; set; }
+        public Database? Database => Catalog.Databases.FirstOrDefault(e => CurrentDatabase != null && e.Name == CurrentDatabase);
 
         public SqlExecutionContext(IDocumentStore store)
         {
@@ -57,27 +59,27 @@ namespace MiniDBMS.Context
         public bool TableExists(string tableName)
         {
             if (Catalog == null) throw new Exception("InvalidCatalog");
-            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
-            return db.Tables.Any(t => t.Name == tableName);
+           
+            return Database!.Tables.Any(t => t.Name == tableName);
         }
 
         public void AddTable(Table t)
         {
             if (Catalog == null) throw new Exception("InvalidCatalog");
-            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
-            db.Tables.Add(t);
+           
+            Database!.Tables.Add(t);
             UpdateCatalog();
         }
 
         public void DropTable(string tableName)
         {
             if (Catalog == null) throw new Exception("InvalidCatalog");
-            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
+           
             var table = GetTable(tableName);
             using var session = Store.OpenSession();
             table.ClearIndexes(this,session);
             session.SaveChanges();
-            db.Tables.RemoveAt(db.Tables.FindIndex(t => t.Name == tableName));
+            Database!.Tables.RemoveAt(Database!.Tables.FindIndex(t => t.Name == tableName));
             
             UpdateCatalog();
         }
@@ -92,23 +94,23 @@ namespace MiniDBMS.Context
             Catalog.Databases.First(e => e.Name == databaseToDrop).Tables.ForEach(t =>
                 t.ClearIndexes(this, session));
             session.SaveChanges();
-            Catalog.Databases.RemoveAt(Catalog.Databases.FindIndex(db => db.Name == databaseToDrop));
+            Catalog.Databases.RemoveAt(Catalog.Databases.FindIndex(db => Database!.Name == databaseToDrop));
             UpdateCatalog();
         }
 
         public bool IndexExists(string indexName)
         {
             if (Catalog == null) throw new Exception("InvalidCatalog");
-            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
-            return db.Tables.Any(t => t.Indexes.Any(e => e.Name == indexName));
+           
+            return Database!.Tables.Any(t => t.Indexes.Any(e => e.Name == indexName));
             
         }
 
         public void CreateIndex(string tableName, Domain.Index index)
         {
             if (Catalog == null) throw new Exception("InvalidCatalog");
-            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
-            var table = db.Tables.First(t => t.Name == tableName);
+           
+            var table = Database!.Tables.First(t => t.Name == tableName);
             table.Indexes.Add(index);
             index.CreateIndexFile(table,this);
             UpdateCatalog();
@@ -117,8 +119,8 @@ namespace MiniDBMS.Context
         public void DropIndex(string indexName)
         {
             if (Catalog == null) throw new Exception("InvalidCatalog");
-            var db = Catalog.Databases.First(e => e.Name == CurrentDatabase);
-            var table = db.Tables.First(t => t.Indexes.Any(e => e.Name == indexName));
+           
+            var table = Database!.Tables.First(t => t.Indexes.Any(e => e.Name == indexName));
             var index = table.Indexes.First(e => e.Name == indexName);
             using var session = Store.OpenSession();
 
@@ -147,6 +149,11 @@ namespace MiniDBMS.Context
         {
             return Catalog!.Databases.First(e => e.Name == CurrentDatabase)
                 .Tables.First(t => t.Name == table);
+        }
+
+        internal Index GetIndex(string table, string name)
+        {
+            return GetTable(table).Indexes.First(f => f.Name == name);
         }
     }
 }

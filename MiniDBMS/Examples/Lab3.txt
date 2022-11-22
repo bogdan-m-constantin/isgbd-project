@@ -1,0 +1,26 @@
+﻿
+CREATE TABLE Groups (GroupId INT PRIMARY KEY, Specialization String, Language String)
+CREATE TABLE Students (StudentId INT PRIMARY KEY, GroupId Int REFERENCES Groups.GroupId, Name String, Phone String, Email String)
+
+INSERT INTO Groups (GroupId, Specialization, Language) VALUES (1,"Group 1", "RO")
+INSERT INTO Groups (GroupId, Specialization, Language) VALUES (2,"Group 2", "RO")
+
+should work: 
+
+INSERT INTO Students (StudentId, GroupId, Name, Phone, Email) VALUES (1,1,"Student 1", "123","email@email.ro")
+
+fk violation:
+
+INSERT INTO Students (StudentId, GroupId, Name, Phone, Email) VALUES (2,5,"Student 2", "1235","email@emaile.ro")
+
+CREATE INDEX IX_UQ_Students_Email ON Students.Email UNIQUE
+CREATE INDEX IX_UQ_Students_Phone ON Students.Phone UNIQUE
+CREATE INDEX IX_UQ_Groups_Language ON Groups.Language
+
+uk violation phone:
+
+INSERT INTO Students (StudentId, GroupId, Name, Phone, Email) VALUES (2,1,"Student 2", "123","email@emaile.ro")
+
+uk violation email:
+
+INSERT INTO Students (StudentId, GroupId, Name, Phone, Email) VALUES (2,1,"Student 2", "1234","email@email.ro")

@@ -4,12 +4,13 @@ namespace MiniDBMS.Domain
 {
     public class Index
     {
-        public List<string> Columns { get; set; } = new();
+        public string Column { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+        public bool Unique { get; set; }
 
         public override string ToString()
         {
-            return $"          {Name} - Columns: {Columns.Join(",")}";
+            return $"          {Name} {(Unique ? "UNIQUE": "NON-UNIQUE")} - Column: {Column}";
         }
 
     }

@@ -8,7 +8,9 @@ namespace MiniDBMS.Domain
         public string Name { get; set; } = string.Empty;
         public List<Attribute> Attributes { get; set; } = new();
         public List<Index> Indexes { get; set; } = new();
+        internal IEnumerable<Index> UniqueIndexes => Indexes.Where(e => e.Unique);
 
+        internal IEnumerable<Attribute> ForeignKeyAttributes => Attributes.Where(e => e.ForeignKey != null);
         public string ToString()
         {
             StringBuilder sb = new StringBuilder();

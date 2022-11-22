@@ -40,11 +40,16 @@ namespace MiniDBMS.SqlCommands
                     throw new Exception($"Value {_val} should be of type {Enum.GetName(col.Type)}");
                 _val = _val.CleanDataAs(col.Type);
             }
+            using var session = context.Store.OpenSession();
 
             // check foreign keys referencing this
+            var childTables = context.Database!.Tables.Where(e => e.Attributes.Any(e => e.ForeignKey?.ReferencedTable == _table));
             if (_col == null)
             {
-                using var session = context.Store.OpenSession();
+                if(childTables.Count() > 0)
+                {
+                    throw new Exception($"Could not truncate table. {childTables.Select(e => e.Name).Join(",")} depend on it.");
+                }
                 var idsToDelete = session.Query<TableRow>().
                     Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{table.Name}:"))
                     .Select(e => e.Id);
@@ -57,8 +62,17 @@ namespace MiniDBMS.SqlCommands
             }
             else
             {
-                using var session = context.Store.OpenSession();
-                session.Delete($"{context.CurrentDatabase}:{table.Name}:{_val}");
+                var id = _val!;
+                foreach(var fkTable in childTables)
+                {
+                    var fkColumns = fkTable.ForeignKeyAttributes.Where(e => e.ForeignKey!.ReferencedTable == _table);
+                    foreach(var fkColumn in fkColumns)
+                    {
+                        if (context.GetIndex(fkTable.Name, fkColumn.ForeignKey!.Name).CheckIndex(context, id, session))
+                            throw new Exception($"Foreign key violation. Id: {id}. FK {fkColumn.ForeignKey.Name}");
+                    }
+                }
+                session.Delete($"{context.CurrentDatabase}:{table.Name}:{id}");
                 _val?.RemoveFromIndexes(table, context, session);
                 session.SaveChanges();
             }
