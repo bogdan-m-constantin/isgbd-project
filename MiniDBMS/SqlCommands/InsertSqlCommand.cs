@@ -71,8 +71,7 @@ namespace MiniDBMS.SqlCommands
                         throw new Exception($"Unique key constraint violation. Value: {val}. Key: {uk.Name} ");
             }
 
-
-            session.Store(row);
+            session.Store(row);      
             _values.AddToIndexes(table, context, session);
             
             session.SaveChanges();

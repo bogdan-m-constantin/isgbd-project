@@ -52,7 +52,15 @@ namespace MiniDBMS.Utils
             foreach (var remoteItem in remoteItems)
             {
                 remoteItem.Values = remoteItem.Values.Split("|").Where(e => e != id).Join("|");
-                session.Store(remoteItem, remoteItem.Id);
+                if (remoteItem.Values.Length == 0)
+                {
+                    session.Delete(remoteItem.Id);
+                }
+                else
+                { 
+                    session.Store(remoteItem, remoteItem.Id);
+
+                }
             }
         }
 
@@ -87,7 +95,6 @@ namespace MiniDBMS.Utils
         }
         public static bool CheckIndex(this Index index, SqlExecutionContext context, string value, IDocumentSession session)
         {
-
              return session.Load<IndexItem>($"{context.CurrentDatabase}:{index.Name}:{value}")?.Values?.Split("|",StringSplitOptions.RemoveEmptyEntries)?.Any() ?? false;
             
         }

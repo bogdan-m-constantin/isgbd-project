@@ -1,4 +1,5 @@
 ﻿using MiniDBMS.Context;
+using MiniDBMS.Domain;
 using MiniDBMS.Utils;
 
 namespace MiniDBMS.SqlCommands
@@ -23,6 +24,16 @@ namespace MiniDBMS.SqlCommands
             if (childTables.Any()){
                 throw new Exception($"Tables {childTables.Join(",")} depend on table {_tableName}.");
             }
+            using var session = context.Store.OpenSession();
+            var idsToDelete = session.Query<TableRow>().
+                   Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{_tableName}:"))
+                   .Select(e => e.Id);
+            foreach (var id in idsToDelete)
+            {
+                session.Delete(id);
+            }
+            context.GetTable(_tableName).ClearIndexes(context, session);
+            session.SaveChanges();
             context.DropTable(_tableName);
         }
 
