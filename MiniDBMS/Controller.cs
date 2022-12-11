@@ -4,6 +4,7 @@ using Raven.Client.Documents;
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,20 +26,25 @@ namespace MiniDBMS
         {
             Console.WriteLine("Current Database: " +(_context.CurrentDatabase ?? "-"));
             Console.WriteLine(_context.Catalog);
+            Stopwatch? sw = null;
             try
             {
                 string cmd = ReadCommand();
                 if (ValidateCommand(cmd))
                 {
                     var sqlCmd = cmd.ParseAsSqlCommand();
+                    sw=  Stopwatch.StartNew();
                        sqlCmd.Execute(_context);
-                    Console.WriteLine("Command executed successfully");
+                    sw.Stop();
+                    TimeSpan e = sw.Elapsed;
+                    Console.WriteLine($"Command executed successfully in  {(int)e.TotalSeconds}.{e.Milliseconds:000}s");
                 }
                 else
                     throw new Exception("Invalid command given");
             }catch(Exception e)
             {
                 Console.WriteLine(e.Message);
+                sw?.Stop();
                 _logger.Error(e, "Exception: ");
             }
             Console.WriteLine("Press any key to continue");

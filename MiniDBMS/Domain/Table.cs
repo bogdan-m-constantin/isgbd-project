@@ -27,6 +27,11 @@ namespace MiniDBMS.Domain
             }
             return sb.ToString();
         }
+
+        public Index? GetIndexForColumn(string column)
+        {
+            return Indexes.FirstOrDefault(e => e.Column == column);
+        }
     }
     
 }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -13,6 +14,8 @@ namespace MiniDBMS.Utils
 {
     public static class DataUtils
     {
+        public const string IntFormat = "0000000000";
+        public const string DecimalFormat = "0000000000.0000000000";
         public static bool ValidateAs(this string data, DataType type)
         {
             if (data.ToUpperInvariant() == "NULL")
@@ -56,6 +59,8 @@ namespace MiniDBMS.Utils
             {
                 DataType.String => data.CleanDataAsString(),
                 DataType.Boolean => data.CleanDataAsBoolean(),
+                DataType.Int => data.CleanDataAsInt(),
+                DataType.Decimal => data.CleanDataAsDecimal(),
                 _ => data,
             };
         }
@@ -66,6 +71,14 @@ namespace MiniDBMS.Utils
         private static string CleanDataAsBoolean(this string data)
         {
             return bool.Parse(data).ToString();
+        }
+        private static string CleanDataAsInt(this string data)
+        {
+            return int.Parse(data).ToString(IntFormat);
+        }
+        private static string CleanDataAsDecimal(this string data)
+        {
+            return decimal.Parse(data).ToString(DecimalFormat);
         }
 
         public static (string id, string values) PackData(this Table t, Dictionary<string, string> values)
@@ -100,7 +113,7 @@ namespace MiniDBMS.Utils
         }
         public static Dictionary<string,object> UnpackData(this TableRow row, Table table)
         {
-            var idParts = row.Id.Split(";");
+            var idParts = row.Id.Split(":")[2].Split(";");
             int idIndex = 0;
             var valueParts = row.Values.Split(";");
             int valuesIndex = 0;
@@ -110,17 +123,26 @@ namespace MiniDBMS.Utils
                 
                 if (c.PrimaryKey)
                 {
-                    values[c.Name] = idParts[idIndex];
+                    values[c.Name] = FormatForDisplay(idParts[idIndex],c.Type);
                     idIndex++;
                 }
                 else
                 {
-                    values[c.Name] = valueParts[valuesIndex];
+                    values[c.Name] = FormatForDisplay(valueParts[valuesIndex],c.Type);
                     valuesIndex++;
                 }
             }
             return values;
         }
 
+        private static object FormatForDisplay(string value, DataType type)
+        {
+            return type switch
+            {
+                DataType.Int => int.Parse(value),
+                DataType.Decimal => decimal.Parse(value),
+                _ => value
+            };
+        }
     }
 }

@@ -1,0 +1,25 @@
+﻿
+CREATE TABLE Groups (GroupId INT PRIMARY KEY, Specialization String, Language String)
+CREATE TABLE Students (StudentId INT PRIMARY KEY, GroupId Int REFERENCES Groups.GroupId,Name String, Email String, Mark decimal)
+
+CREATE INDEX UK_Students_Email ON Students.Email UNIQUE
+CREATE INDEX IX_Students_Mark ON Students.Mark
+
+INSERT INTO Groups (GroupId, Specialization, Language) VALUES (1,"Group 1", "RO")
+INSERT INTO Groups (GroupId, Specialization, Language) VALUES (2,"Group 2", "RO")
+
+
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (1,1,"Student 1", "student1@email.ro", 4.8)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (2,1,"Student 2", "student2@email.ro", 8.4)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (3,1,"Student 3", "student3@email.ro", 2.2)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (4,1,"Student 4", "student4@email.ro", 7.3)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (5,1,"Student 5", "student5@email.ro", 6.2)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (6,1,"Student 6", "student6@email.ro", 5.4)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (7,2,"Student 7", "student7@email.ro", 7.3)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (8,1,"Student 8", "student8@email.ro", 3.8)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (9,1,"Student 9", "student9@email.ro", 2.5)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (10,2,"Student 10", "student10@email.ro", 5.8)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (11,1,"Student 11", "student11@email.ro", 10)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (12,2,"Student 12", "student12@email.ro", 8.1)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (13,1,"Student 13", "student13@email.ro", 6.3)
+INSERT INTO Students (StudentId, GroupId, Name, Email, Mark) VALUES (14,2,"Student 14", "student14@email.ro", 7.4)
