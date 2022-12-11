@@ -58,7 +58,7 @@ namespace MiniDBMS.Utils
                 }
                 else
                 { 
-                    session.Store(remoteItem, remoteItem.Id);
+                    session.Store(remoteItem);
 
                 }
             }
