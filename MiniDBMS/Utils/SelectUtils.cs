@@ -73,10 +73,7 @@ namespace MiniDBMS.Utils
             if (index == null)
                 return rows.ApplyEqualCondition(column,value, context, table, session);
             string id = $"{context.CurrentDatabase}:{index.Name}:{value.CleanDataAs(column.Type)}";
-            // aici ai id-ul IndexItem-ului de care ai nevoie. 
-            // trebuie incarcat din RavenDB indexitem-ul. In valori ai id-urile TableRow-urilor separate cu |. Trebuie sa pui in ids lista de id-uri de tableRow
-            // cu forma completa (DbName:TableName:id)
-            // posibil indexitem sa nu existe - atunci ids trebuie sa raman gol.
+            ids = session.Load<IndexItem>(id)?.Values?.Split("|").Select(e => $"{context.CurrentDatabase}:{table.Name}:{e}").ToArray()??new string[] {};
             return rows.WhereIn(e => e.Id, ids);
 
         }
@@ -94,12 +91,11 @@ namespace MiniDBMS.Utils
             var index = table.GetIndexForColumn(column.Name);
             if (index == null)
                 return rows.ApplyNotEqualConditionWithoutIndex(column,value , context, table, session);
-            // trebuie sa incarci din ravendb toate index items care incep cu $"{context.CurrentDatabase}:{index.Name}:" si nu sunt egale cu $"{context.CurrentDatabase}:{index.Name}:{value}"
-            //  In valori ai id-urile TableRow-urilor separate cu |.
-            //  Trebuie sa pui in ids lista de id-uri de tableRow cu forma completa (DbName:TableName:id)
-            // posibil indexitem sa nu existe - atunci ids trebuie sa raman gol.
 
             var ids = new string[] { };
+            ids = session.Query<IndexItem>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{index.Name}:")).ToList()
+                .Where(e => e.Id != $"{context.CurrentDatabase}:{index.Name}:{value}")
+                .SelectMany(e => e.Values.Split("|").Select(e => $"{context.CurrentDatabase}:{table.Name}:{e}")).ToArray();
             return rows.WhereIn(e => e.Id, ids);
 
         }
