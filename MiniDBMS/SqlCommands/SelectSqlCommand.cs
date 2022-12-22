@@ -14,6 +14,7 @@ namespace MiniDBMS.SqlCommands
     public class SelectSqlCommand : SqlCommand
     {
         private string _tableName = string.Empty;
+        private bool _distinct = false;
         private List<string> _attributes = new();
 
         private string[] _allowedOperators = new string[] { "<", ">", "<=", ">=", "<>", "=", "BETWEEN" };
@@ -24,7 +25,7 @@ namespace MiniDBMS.SqlCommands
         {
         }
 
-        public override string CorrectSyntax => "SELECT {[attr 1, attr 2 ] / [*]} FROM tableName [WHERE {condition}]";
+        public override string CorrectSyntax => "SELECT [DISTINCT] {[attr 1, attr 2 ] / [*]} FROM tableName [WHERE {condition}]";
 
         public override void Execute(SqlExecutionContext context)
         {
@@ -46,7 +47,10 @@ namespace MiniDBMS.SqlCommands
 
                     rows = rows.ApplyCondition(condition, table, context, session);
                 }
-                var result = new SelectResponse(table, rows.ToList(), _attributes.ToArray());
+                var resultRows = rows.ToList();
+               
+                var result = new SelectResponse(table, resultRows, _attributes.ToArray(),_distinct);
+                
                 Console.WriteLine(result);
                 Console.WriteLine($"Total of {result.Rows.Count()}");
             }catch(InvalidOperationException e)
@@ -63,8 +67,13 @@ namespace MiniDBMS.SqlCommands
                 ThrowInvalidSyntaxError();
             if (_command.Length < fromIndex + 2)
                 ThrowInvalidSyntaxError();
-
-            _attributes = _command.Skip(1).Take(fromIndex - 1).Join(" ").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
+            int startIndex = 1;
+            if (_command[1] == "DISTINCT")
+            {
+                _distinct = true;
+                startIndex = 2;
+            }
+            _attributes = _command.Skip(startIndex).Take(fromIndex - startIndex).Join(" ").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
             if (!_attributes.Any())
                 ThrowInvalidSyntaxError();
             _tableName = _command[fromIndex + 1];
@@ -96,7 +105,7 @@ namespace MiniDBMS.SqlCommands
                             ThrowInvalidSyntaxError();
                         value2 = parts[3];
                     }
-                    else if (parts.Length != 5)
+                    else if (parts.Length != 3)
                         ThrowInvalidSyntaxError();
 
                     _selectConditions.Add(new(col, op, value1, value2));

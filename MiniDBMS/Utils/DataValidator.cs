@@ -137,12 +137,18 @@ namespace MiniDBMS.Utils
 
         private static object FormatForDisplay(string value, DataType type)
         {
-            return type switch
+            try
             {
-                DataType.Int => int.Parse(value),
-                DataType.Decimal => decimal.Parse(value),
-                _ => value
-            };
+                return type switch
+                {
+                    DataType.Int => int.Parse(value),
+                    DataType.Decimal => decimal.Parse(value),
+                    _ => value
+                };
+            }
+            catch (Exception e) {
+                throw e;
+            }
         }
     }
 }

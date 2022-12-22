@@ -20,7 +20,7 @@ try
         Urls = new[] { ravenDbUrl },
         Conventions =
                 {
-                    MaxNumberOfRequestsPerSession = 32,
+                    MaxNumberOfRequestsPerSession = int.MaxValue,
                     UseOptimisticConcurrency = true,
                 },
         Database = "MiniDBMS",

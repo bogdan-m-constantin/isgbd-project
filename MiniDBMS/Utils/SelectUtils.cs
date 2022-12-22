@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,12 +22,12 @@ namespace MiniDBMS.Utils
             if (condition.Operand == "<")
                 return rows.ApplyRangeCondition(column, Decimal.MinValue, true, Convert.ToDecimal(condition.Value), false, context, table, session);
             if (condition.Operand == "<=")
-                return rows.ApplyRangeCondition(column, Decimal.MinValue, true, Convert.ToDecimal(condition.Value), false, context, table, session);
+                return rows.ApplyRangeCondition(column, Decimal.MinValue, true, Convert.ToDecimal(condition.Value), true, context, table, session);
             if (condition.Operand == ">=")
                 return rows.ApplyRangeCondition(column, Convert.ToDecimal(condition.Value), true, Decimal.MaxValue, false, context, table, session);
             if (condition.Operand == ">")
-                return rows.ApplyRangeCondition(column, Convert.ToDecimal(condition.Value), true, Decimal.MaxValue, false, context, table, session);
-            if (condition.Operand == "==")
+                return rows.ApplyRangeCondition(column, Convert.ToDecimal(condition.Value), true, Decimal.MaxValue, true, context, table, session);
+            if (condition.Operand == "=")
                 return rows.ApplyEqualCondition(column, condition.Value, context, table, session);
             if (condition.Operand == "<>")
                 return rows.ApplyNotEqualCondition(column, condition.Value, context, table, session);
@@ -57,7 +58,7 @@ namespace MiniDBMS.Utils
             int leftCompare = leftInclusive ? 0 : 1;
             int rightCompare = rightInclusive ? 0 : -1;
 
-            var ids = session.Query<TableRow>().ToList().ToDictionary(e => e.Id, e => (decimal)e.UnpackData(table)[column.Name]).
+            var ids = session.Query<TableRow>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{table.Name}:")).ToList().ToDictionary(e => e.Id, e => (decimal)e.UnpackData(table)[column.Name]).
                 Where(e => e.Value.CompareTo(left) >= leftCompare && e.Value.CompareTo(right) <= rightCompare).Select(e => e.Key).ToArray();
             return rows.WhereIn(e => e.Id, ids);
 
@@ -71,17 +72,17 @@ namespace MiniDBMS.Utils
             
             var index = table.GetIndexForColumn(column.Name);
             if (index == null)
-                return rows.ApplyEqualCondition(column,value, context, table, session);
+                return rows.ApplyEqualConditionWithoutIndex(column,value, context, table, session);
             string id = $"{context.CurrentDatabase}:{index.Name}:{value.CleanDataAs(column.Type)}";
-            ids = session.Load<IndexItem>(id)?.Values?.Split("|").Select(e => $"{context.CurrentDatabase}:{table.Name}:{e}").ToArray()??new string[] {};
+            ids = session.Load<IndexItem>(id)?.Values?.Split("|",StringSplitOptions.RemoveEmptyEntries).Select(e => $"{context.CurrentDatabase}:{table.Name}:{e}").ToArray()??new string[] {};
             return rows.WhereIn(e => e.Id, ids);
 
         }
         public static IDocumentQuery<TableRow> ApplyEqualConditionWithoutIndex(this IDocumentQuery<TableRow> rows, Attribute column, string value, SqlExecutionContext context, Table table, IDocumentSession session)
         {
 
-            var ids = session.Query<TableRow>().ToList().ToDictionary(e => e.Id, e => e.UnpackData(table)[column.Name]).
-               Where(e => CompareAs(column.Type, value, e.Value.ToString()) == 0).Select(e => e.Key).ToArray();
+            var ids = session.Query<TableRow>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{table.Name}:")).ToList().ToDictionary(e => e.Id, e => e.UnpackData(table)[column.Name]).
+               Where(e => CompareAs(column.Type, value.CleanDataAs(column.Type), e.Value.ToString()) == 0).Select(e => e.Key).ToArray();
             return rows.WhereIn(e => e.Id, ids);
         }
        
@@ -93,8 +94,9 @@ namespace MiniDBMS.Utils
                 return rows.ApplyNotEqualConditionWithoutIndex(column,value , context, table, session);
 
             var ids = new string[] { };
-            ids = session.Query<IndexItem>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{index.Name}:")).ToList()
-                .Where(e => e.Id != $"{context.CurrentDatabase}:{index.Name}:{value}")
+            var lst = session.Query<IndexItem>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{index.Name}:")).ToList();
+            ids = lst
+                .Where(e => e.Id != $"{context.CurrentDatabase}:{index.Name}:{value.CleanDataAs(column.Type)}")
                 .SelectMany(e => e.Values.Split("|").Select(e => $"{context.CurrentDatabase}:{table.Name}:{e}")).ToArray();
             return rows.WhereIn(e => e.Id, ids);
 
@@ -102,7 +104,7 @@ namespace MiniDBMS.Utils
         public static IDocumentQuery<TableRow> ApplyNotEqualConditionWithoutIndex(this IDocumentQuery<TableRow> rows, Attribute column, string value, SqlExecutionContext context, Table table, IDocumentSession session)
         {
 
-            var ids = session.Query<TableRow>().ToList().ToDictionary(e => e.Id, e => e.UnpackData(table)[column.Name]).
+            var ids = session.Query<TableRow>().Where(e => e.Id.StartsWith($"{context.CurrentDatabase}:{table.Name}:")).ToList().ToDictionary(e => e.Id, e => e.UnpackData(table)[column.Name]).
                Where(e => CompareAs(column.Type, value, e.Value.ToString()) != 0).Select(e => e.Key).ToArray();
             return rows.WhereIn(e => e.Id, ids);
         }
