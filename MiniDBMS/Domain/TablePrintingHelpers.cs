@@ -13,10 +13,10 @@ namespace MiniDBMS.Domain
             builder.Append('+').AppendLine();
             return builder;
         }
-        public static StringBuilder AppendRowContent(this StringBuilder builder, IEnumerable<TableHeader> headers, Dictionary<string, string> values)
+        public static StringBuilder AppendRowContent(this StringBuilder builder, IEnumerable<TableHeader> headers, Dictionary<string, Dictionary<string, string>> values)
         {
             foreach (var header in headers)
-                builder.Append("| ").Append(values[header.Name].PadRight(header.Width, ' ')).Append(' ');
+                builder.Append("| ").Append(values[header.Table][header.Name].PadRight(header.Width, ' ')).Append(' ');
             
             builder.Append('|').AppendLine();
             
