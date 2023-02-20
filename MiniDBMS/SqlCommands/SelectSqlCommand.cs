@@ -275,7 +275,7 @@ namespace MiniDBMS.SqlCommands
         {
             if(whereIndex == -1 )
                 whereIndex = _command.Length;
-            if (fromEnd >= whereIndex)
+            if (_command.ToList().IndexOf("JOIN") == -1)
                 return;
             var joinPart = _command.Skip(fromEnd + 1).Take(whereIndex - fromEnd).ToList();
             // JOIN TABLE ON TABLE1.COLUMN1 = TABLE2.COLUMN2

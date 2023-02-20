@@ -68,7 +68,7 @@ namespace MiniDBMS
                 sqlCmd.Execute(_context);
                 sw.Stop();
                 TimeSpan e = sw.Elapsed;
-                //Console.WriteLine($"Command executed successfully in  {(int)e.TotalSeconds}.{e.Milliseconds:000}s");
+                Console.WriteLine($"Command executed successfully in  {(int)e.TotalSeconds}.{e.Milliseconds:000}s");
             }
             else
                 throw new Exception("Invalid command given");
